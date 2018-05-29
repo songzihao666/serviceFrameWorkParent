@@ -12,6 +12,7 @@ import brave.Tracer;
 import brave.Tracing;
 import brave.internal.Platform;
 import brave.propagation.TraceContext;
+import brave.sampler.Sampler;
 import zipkin2.reporter.AsyncReporter;
 import zipkin2.reporter.Sender;
 import zipkin2.reporter.kafka11.KafkaSender;
@@ -23,13 +24,16 @@ public class TraceHelper {
 	@Value("${serviceName}")
 	private String serviceName;
 	
+	@Value("${rate}")
+	private float rate;
+	
 	private static Tracer tracer;
 	
 	@PostConstruct
 	public void init() {
 		Sender sender = KafkaSender.create(kafkaServer);
 		AsyncReporter spanReporter = AsyncReporter.create(sender);
-		Tracing tracing = Tracing.newBuilder()
+		Tracing tracing = Tracing.newBuilder().sampler(Sampler.create(rate))
 	            .localServiceName(serviceName)
 	            .spanReporter(spanReporter)
 	            .build();
@@ -45,7 +49,7 @@ public class TraceHelper {
 			span = TraceHelper.tracer.joinSpan(TraceContext.newBuilder().traceId(span.context().traceId())
 				.parentId(span.context().spanId()).sampled(span.context().sampled()).spanId(Platform.get().randomLong())
 				.debug(span.context().debug())
-				.build()).annotate("cs").start();
+				.build());
 		}
 		return span;
 	}
