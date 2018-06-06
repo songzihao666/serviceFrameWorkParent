@@ -62,11 +62,11 @@ public class TraceHelper {
 		span.annotate("cr").finish();	
 	}
 	
-	public static void srStart(ZipkinTraceContext context, String name, String method) {
+	public static void srStart(ZipkinTraceContext context) {
 		Span span = TraceHelper.tracer.joinSpan(TraceContext.newBuilder().traceId(context.getTraceId())
 				.parentId(context.getParentId()).sampled(context.isSampled()).spanId(context.getSpanId())
 				.debug(context.isDebug())
-				.build()).name(name).annotate("sr").tag("method", method).start();
+				.build());
 		TraceContextHelper.setSpan(span);
 	}
 	
